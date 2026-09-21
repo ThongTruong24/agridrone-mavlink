@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<mavlink>
+  <include>common.xml</include>
+  <enums>
+    <enum name="MAV_CMD">
+      <entry value="44000" name="MAV_CMD_THACO_EXTERNAL_XYZ" hasLocation="false" isDestination="false">
+        <description>THACO External XYZ marker - triggers companion to start external XYZ control</description>
+        <param index="1">Reserved</param>
+        <param index="2">Reserved</param>
+        <param index="3">Reserved</param>
+        <param index="4">Reserved</param>
+        <param index="5">Reserved</param>
+        <param index="6">Reserved</param>
+        <param index="7">Reserved</param>
+      </entry>
+      <entry value="44001" name="MAV_CMD_THACO_ACTUATOR_CONTROL" hasLocation="false" isDestination="false">
+        <description>THACO Actuator Control - controls THACO actuator directly via MAVLink</description>
+        <param index="1">Actuator index (0=A1 ... 7=A8)</param>
+        <param index="2">Value (0-255)</param>
+        <param index="3">Reserved</param>
+        <param index="4">Reserved</param>
+        <param index="5">Reserved</param>
+        <param index="6">Reserved</param>
+        <param index="7">Reserved</param>
+      </entry>
+      <entry value="44002" name="MAV_CMD_THACO_EXTERNAL_XYZ_COMPLETE" hasLocation="false" isDestination="false">
+        <description>THACO External XYZ Complete - starts asynchronous PX4-managed mission resume; keep OFFBOARD setpoints active after IN_PROGRESS until the final ACK; a final ACCEPTED may be replayed for 20 seconds only to the original sender</description>
+        <param index="1">Exact integer trigger ID in range 1..16777216; must match the pending THACO_EXTERNAL_XYZ_TRIGGER trigger_id</param>
+        <param index="2">Reserved</param>
+        <param index="3">Reserved</param>
+        <param index="4">Reserved</param>
+        <param index="5">Reserved</param>
+        <param index="6">Reserved</param>
+        <param index="7">Reserved</param>
+      </entry>
+    </enum>
+  </enums>
+  <messages>
+    <message id="32000" name="THACO_EXTERNAL_XYZ_TRIGGER">
+      <description>THACO External XYZ trigger - sent immediately and retried once per second while waiting for completion</description>
+      <field type="uint32_t" name="trigger_id">Stable per-handoff trigger ID in range 1..16777216</field>
+      <field type="uint32_t" name="time_boot_ms">Timestamp in milliseconds since system boot</field>
+    </message>
+  
+    <!-- ================================================================= -->
+    <!-- COMPANION COMPUTER DEDICATED TELEMETRY MESSAGES                    -->
+    <!-- ================================================================= -->
+
+    <message id="42010" name="CC_TELEMETRY_LINKS">
+      <description>Companion Computer serial and communication telemetry link status.</description>
+      <field type="uint32_t" name="fc_baudrate">FC UART connection baudrate, e.g. 921600</field>
+      <field type="uint32_t" name="siyi_baudrate">SIYI telemetry link baudrate, e.g. 115200</field>
+      <field type="uint32_t" name="fc_bytes_rx">Total bytes received from FC</field>
+      <field type="uint32_t" name="fc_bytes_tx">Total bytes sent to FC</field>
+      <field type="float" name="fc_bitrate_kbps">Current live bitrate in kbps</field>
+      <field type="uint8_t" name="link_status_flags">Bitfield: bit 0: FC connected, bit 1: SIYI connected</field>
+      <field type="char[16]" name="fc_port">FC serial device, e.g. ttyAMA4</field>
+      <field type="char[16]" name="siyi_port">SIYI serial device, e.g. ttyAMA0</field>
+    </message>
+
+    <message id="42011" name="CC_TELEMETRY_CAMERA">
+      <description>Companion Computer camera, video streamer, encoder, and RTSP stream status.</description>
+      <field type="uint16_t" name="video_width">Video stream width, e.g. 1280</field>
+      <field type="uint16_t" name="video_height">Video stream height, e.g. 720</field>
+      <field type="uint16_t" name="rotation">Camera hardware rotation angle: 0, 90, 180, 270</field>
+      <field type="uint16_t" name="depth_width">Depth stream width, e.g. 640</field>
+      <field type="uint16_t" name="depth_height">Depth stream height, e.g. 480</field>
+      <field type="uint16_t" name="bitrate_kbps">Encoder nominal bitrate in kbps, e.g. 2500</field>
+      <field type="uint16_t" name="bitrate_max_kbps">Encoder max bitrate in kbps, e.g. 3000</field>
+      <field type="uint16_t" name="vbv_buffer_kb">Encoder VBV buffer size in kb, e.g. 1250</field>
+      <field type="uint8_t" name="video_fps">Video stream framerate, e.g. 30</field>
+      <field type="uint8_t" name="depth_fps">Depth stream framerate, e.g. 30</field>
+      <field type="uint8_t" name="profile_mode">0: rgb_only, 1: rgb_depth, 2: rgb_depth_pointcloud</field>
+      <field type="uint8_t" name="enable_emitter">0: disabled, 1: enabled</field>
+      <field type="char[16]" name="camera_type">Camera driver type: realsense, v4l2, etc.</field>
+      <field type="char[20]" name="serial_number">Camera hardware serial number</field>
+      <field type="char[8]" name="codec">Video codec: h264, h265</field>
+      <field type="char[8]" name="encoder_mode">Encoder mode: auto, cpu, hardware</field>
+      <field type="char[64]" name="rtsp_url">RTSP stream URL endpoint</field>
+    </message>
+
+    <message id="42012" name="CC_TELEMETRY_NETWORK">
+      <description>Companion Computer network interfaces, DHCP, and Access Point (hostapd) status.</description>
+      <field type="uint8_t" name="ap_channel">Wi-Fi AP channel, e.g. 6</field>
+      <field type="uint8_t" name="ap_ieee80211n">802.11n flag (1: enabled)</field>
+      <field type="uint8_t" name="ap_wmm_enabled">WMM flag (1: enabled)</field>
+      <field type="uint8_t" name="ap_wpa">WPA version (2: WPA2-PSK)</field>
+      <field type="uint8_t" name="ap_client_count">Connected Wi-Fi clients count</field>
+      <field type="uint8_t" name="wlan0_dhcp">Wi-Fi client DHCP status (1: active)</field>
+      <field type="uint8_t" name="dnsmasq_status">dnsmasq DHCP server status (1: active)</field>
+      <field type="char[16]" name="eth0_ip">Ethernet interface IP address</field>
+      <field type="char[16]" name="wlan0_ip">Wi-Fi station interface IP address</field>
+      <field type="char[16]" name="ap_ip">Access Point interface IP address (uap0)</field>
+      <field type="char[32]" name="ap_ssid">Wi-Fi AP SSID, e.g. AP_DRONE</field>
+      <field type="char[16]" name="ap_wpa_passphrase">Wi-Fi AP WPA passphrase</field>
+      <field type="char[12]" name="ap_key_mgmt">Key management, e.g. WPA-PSK</field>
+      <field type="char[4]" name="ap_hw_mode">Hardware mode, e.g. g</field>
+    </message>
+
+    <message id="42013" name="CC_TELEMETRY_VISION">
+      <description>Companion Computer AI perception and YOLO object detector status.</description>
+      <field type="float" name="confidence_thresh">Detection confidence threshold, e.g. 0.35</field>
+      <field type="float" name="inference_fps">Current inference frames per second, e.g. 5.0</field>
+      <field type="uint16_t" name="input_width">Model input width, e.g. 640</field>
+      <field type="uint16_t" name="input_height">Model input height, e.g. 360</field>
+      <field type="uint8_t" name="video_fps">Camera input FPS, e.g. 20</field>
+      <field type="uint8_t" name="detections_count">Current count of detected objects</field>
+      <field type="uint8_t" name="status_flags">Vision pipeline status: bit 0: running, bit 1: depth enabled</field>
+      <field type="char[24]" name="model_name">YOLO model filename, e.g. yolo26n.pt</field>
+      <field type="char[12]" name="input_source">Input source: rtsp, realsense</field>
+    </message>
+  </messages>
+</mavlink>
