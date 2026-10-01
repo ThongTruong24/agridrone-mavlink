@@ -1,0 +1,444 @@
+<?xml version="1.0"?>
+<mavlink>
+  <include>common.xml</include>
+
+  <!-- ================================================================= -->
+  <!-- THACO MAVLink Dialect Definitions                                 -->
+  <!-- Supports Ground Control Station & Companion Computer subsystems:  -->
+  <!--  - Telemetry link health (FC & SIYI)                              -->
+  <!--  - Networking & Interfaces (Hotspot, WiFi, Ethernet)              -->
+  <!--  - Camera (Message 2: Multi-stream RTSP, Dev info, Default flag)  -->
+  <!--  - System Health & Resource Monitor                               -->
+  <!--  - AI Vision / Perception Status                                  -->
+  <!--  - MAV_CMD commands for Config Staging, Apply, Undo, Save Default -->
+  <!-- ================================================================= -->
+
+  <enums>
+    <!-- MAV_CMD Extension -->
+    <enum name="MAV_CMD">
+      <entry value="44000" name="MAV_CMD_THACO_EXTERNAL_XYZ" hasLocation="false" isDestination="false">
+        <description>THACO External XYZ marker - triggers companion to start external XYZ control</description>
+        <param index="1">Reserved</param>
+        <param index="2">Reserved</param>
+        <param index="3">Reserved</param>
+        <param index="4">Reserved</param>
+        <param index="5">Reserved</param>
+        <param index="6">Reserved</param>
+        <param index="7">Reserved</param>
+      </entry>
+      <entry value="44001" name="MAV_CMD_THACO_ACTUATOR_CONTROL" hasLocation="false" isDestination="false">
+        <description>THACO Actuator Control - controls THACO actuator directly via MAVLink</description>
+        <param index="1">Actuator index (0=A1 ... 7=A8)</param>
+        <param index="2">Value (0-255)</param>
+        <param index="3">Reserved</param>
+        <param index="4">Reserved</param>
+        <param index="5">Reserved</param>
+        <param index="6">Reserved</param>
+        <param index="7">Reserved</param>
+      </entry>
+      <entry value="44002" name="MAV_CMD_THACO_EXTERNAL_XYZ_COMPLETE" hasLocation="false" isDestination="false">
+        <description>THACO External XYZ Complete - starts asynchronous PX4-managed mission resume</description>
+        <param index="1">Exact integer trigger ID</param>
+        <param index="2">Reserved</param>
+        <param index="3">Reserved</param>
+        <param index="4">Reserved</param>
+        <param index="5">Reserved</param>
+        <param index="6">Reserved</param>
+        <param index="7">Reserved</param>
+      </entry>
+      <!-- Subsystem Configuration & Staging Commands -->
+      <entry value="44010" name="MAV_CMD_THACO_SAVE_DEFAULT_CONFIG" hasLocation="false" isDestination="false">
+        <description>Persist currently active subsystem configuration as factory / boot default</description>
+        <param index="1">Subsystem ID (0: All, 1: Telemetry, 2: Camera, 3: Network, 4: Vision)</param>
+        <param index="2">Reserved</param>
+        <param index="3">Reserved</param>
+        <param index="4">Reserved</param>
+        <param index="5">Reserved</param>
+        <param index="6">Reserved</param>
+        <param index="7">Reserved</param>
+      </entry>
+      <entry value="44011" name="MAV_CMD_THACO_APPLY_CONFIG" hasLocation="false" isDestination="false">
+        <description>Apply staged changes and restart affected subsystem services</description>
+        <param index="1">Subsystem ID (0: All, 1: Telemetry, 2: Camera, 3: Network, 4: Vision)</param>
+        <param index="2">Restart service flag (1: restart immediately, 0: apply pending)</param>
+        <param index="3">Reserved</param>
+        <param index="4">Reserved</param>
+        <param index="5">Reserved</param>
+        <param index="6">Reserved</param>
+        <param index="7">Reserved</param>
+      </entry>
+      <entry value="44012" name="MAV_CMD_THACO_RESTORE_DEFAULT_CONFIG" hasLocation="false" isDestination="false">
+        <description>Revert staged or active configuration back to default baseline</description>
+        <param index="1">Subsystem ID (0: All, 1: Telemetry, 2: Camera, 3: Network, 4: Vision)</param>
+        <param index="2">Reserved</param>
+        <param index="3">Reserved</param>
+        <param index="4">Reserved</param>
+        <param index="5">Reserved</param>
+        <param index="6">Reserved</param>
+        <param index="7">Reserved</param>
+      </entry>
+    </enum>
+
+    <!-- Communication Link Connection Status -->
+    <enum name="CC_LINK_STATUS">
+      <description>Link connection states for FC and SIYI</description>
+      <entry value="0" name="CC_LINK_STATUS_DISCONNECTED">
+        <description>Link is disconnected or port is unavailable</description>
+      </entry>
+      <entry value="1" name="CC_LINK_STATUS_CONNECTING">
+        <description>Link is attempting connection / baudrate negotiation</description>
+      </entry>
+      <entry value="2" name="CC_LINK_STATUS_CONNECTED">
+        <description>Link is active and transmitting MAVLink traffic</description>
+      </entry>
+      <entry value="3" name="CC_LINK_STATUS_ERROR">
+        <description>Link experienced error, packet overrun, or loss of heartbeat</description>
+      </entry>
+    </enum>
+
+    <!-- Camera Runtime Status -->
+    <enum name="CC_CAM_STATUS">
+      <description>Camera lifecycle and streaming states</description>
+      <entry value="0" name="CC_CAM_STATUS_DISCONNECTED">
+        <description>No camera detected on expected bus/interface</description>
+      </entry>
+      <entry value="1" name="CC_CAM_STATUS_INITIALIZING">
+        <description>Camera device detected, initializing pipeline / sensor stream</description>
+      </entry>
+      <entry value="2" name="CC_CAM_STATUS_STREAMING">
+        <description>Camera is actively capturing and RTSP server is broadcasting</description>
+      </entry>
+      <entry value="3" name="CC_CAM_STATUS_ERROR">
+        <description>Camera pipeline encountered critical error</description>
+      </entry>
+    </enum>
+
+    <!-- Camera Diagnostic Error Codes -->
+    <enum name="CC_CAM_ERROR">
+      <description>Detailed error classification for camera subsystem</description>
+      <entry value="0" name="CC_CAM_ERROR_NONE">
+        <description>No error, operating normally</description>
+      </entry>
+      <entry value="1" name="CC_CAM_ERROR_NOT_FOUND">
+        <description>Camera hardware device node or USB device not found</description>
+      </entry>
+      <entry value="2" name="CC_CAM_ERROR_USB_DEGRADED">
+        <description>Camera connected to USB 2.0 port instead of required USB 3.0/3.2, bandwidth limited</description>
+      </entry>
+      <entry value="3" name="CC_CAM_ERROR_PIPELINE">
+        <description>GStreamer / RealSense pipeline negotiation failed</description>
+      </entry>
+      <entry value="4" name="CC_CAM_ERROR_DEVICE_BUSY">
+        <description>Device is already acquired by another process</description>
+      </entry>
+    </enum>
+
+    <!-- Network Interface Operating Status -->
+    <enum name="CC_NET_STATUS">
+      <description>Operational status of network interfaces</description>
+      <entry value="0" name="CC_NET_STATUS_DOWN">
+        <description>Interface is down or disconnected</description>
+      </entry>
+      <entry value="1" name="CC_NET_STATUS_UP">
+        <description>Interface is up and running with assigned IP</description>
+      </entry>
+      <entry value="2" name="CC_NET_STATUS_CONFIGURING">
+        <description>Interface is acquiring DHCP lease or configuring</description>
+      </entry>
+    </enum>
+
+    <!-- System Health Alert Flags (Bitfield) -->
+    <enum name="CC_SYS_STATUS" bitmask="true">
+      <description>Companion Computer health and alert bitmask</description>
+      <entry value="1" name="CC_SYS_STATUS_WARNING">
+        <description>System resource warning threshold reached</description>
+      </entry>
+      <entry value="2" name="CC_SYS_STATUS_CRITICAL_TEMP">
+        <description>SoC temperature exceeded safety threshold (&gt; 80°C)</description>
+      </entry>
+      <entry value="4" name="CC_SYS_STATUS_DISK_FULL">
+        <description>Storage filesystem utilization &gt; 90%</description>
+      </entry>
+      <entry value="8" name="CC_SYS_STATUS_HIGH_LOAD">
+        <description>CPU load average sustained &gt; 95%</description>
+      </entry>
+    </enum>
+  
+    <!-- Companion Computer Linux OS Configuration Subsystem Enums -->
+    <enum name="CC_CONFIG_RESULT">
+      <description>Result codes for CC_CONFIG_ACK</description>
+      <entry value="0" name="CC_CONFIG_RESULT_OK">
+        <description>Operation completed successfully</description>
+      </entry>
+      <entry value="1" name="CC_CONFIG_RESULT_ACCEPTED">
+        <description>Operation or transaction request accepted</description>
+      </entry>
+      <entry value="2" name="CC_CONFIG_RESULT_REJECTED">
+        <description>Operation rejected due to invalid syntax or constraint</description>
+      </entry>
+      <entry value="3" name="CC_CONFIG_RESULT_TIMEOUT">
+        <description>Transaction confirmation timeout expired</description>
+      </entry>
+      <entry value="4" name="CC_CONFIG_RESULT_ROLLBACK">
+        <description>Rollback triggered or completed</description>
+      </entry>
+    </enum>
+
+    <enum name="CC_CONFIG_APPLY_TYPE">
+      <description>System action required to apply a configuration change</description>
+      <entry value="0" name="CC_CONFIG_APPLY_HOT">
+        <description>Applied immediately at runtime without service restart</description>
+      </entry>
+      <entry value="1" name="CC_CONFIG_APPLY_SERVICE_RESTART">
+        <description>Requires specific systemd service restart</description>
+      </entry>
+      <entry value="2" name="CC_CONFIG_APPLY_NETWORK_RESTART">
+        <description>Requires netplan apply and initiates 30s rollback safety timer</description>
+      </entry>
+      <entry value="3" name="CC_CONFIG_APPLY_REBOOT">
+        <description>Requires reboot to reload kernel / device tree</description>
+      </entry>
+    </enum>
+
+    <enum name="CC_CONFIG_STATE">
+      <description>Lifecycle states of a configuration transaction</description>
+      <entry value="0" name="CC_CONFIG_STATE_IDLE">
+        <description>No active transaction</description>
+      </entry>
+      <entry value="1" name="CC_CONFIG_STATE_STAGING">
+        <description>Transaction open, receiving staged key-value pairs</description>
+      </entry>
+      <entry value="2" name="CC_CONFIG_STATE_APPLYING">
+        <description>Validating and applying configuration to Linux backends</description>
+      </entry>
+      <entry value="3" name="CC_CONFIG_STATE_WAIT_CONFIRM">
+        <description>Network applied, waiting for QGC confirm packet before timeout</description>
+      </entry>
+      <entry value="4" name="CC_CONFIG_STATE_COMMITTED">
+        <description>Transaction successfully confirmed and committed</description>
+      </entry>
+      <entry value="5" name="CC_CONFIG_STATE_ROLLBACK">
+        <description>Rolling back to previous known-good configuration</description>
+      </entry>
+    </enum>
+
+  </enums>
+
+  <messages>
+    <!-- Message 0: Existing external trigger message -->
+    <message id="32000" name="THACO_EXTERNAL_XYZ_TRIGGER">
+      <description>THACO External XYZ trigger - sent immediately and retried once per second while waiting for completion</description>
+      <field type="uint32_t" name="trigger_id">Stable per-handoff trigger ID in range 1..16777216</field>
+      <field type="uint32_t" name="time_boot_ms">Timestamp in milliseconds since system boot</field>
+    </message>
+
+    <!-- ================================================================= -->
+    <!-- COMPANION COMPUTER DEDICATED TELEMETRY MESSAGES                    -->
+    <!-- ================================================================= -->
+
+    <!-- Message 1: Serial & Comm Telemetry Links (Tab Telemetry) -->
+        <!-- Message 1: Telemetry & Radio Links (FC & SIYI) -->
+    <message id="42010" name="CC_TELEMETRY_LINKS">
+      <description>Companion Computer serial and communication telemetry link status for FC and SIYI Air Unit.</description>
+      <!-- Rates for FC -->
+      <field type="float" name="fc_tx_rate">FC Transmit rate in Bytes/sec</field>
+      <field type="float" name="fc_rx_rate">FC Receive rate in Bytes/sec</field>
+      <field type="float" name="fc_tx_rate_max">FC Peak transmit rate in Bytes/sec</field>
+      <field type="float" name="fc_tx_rate_multi">FC Transmit rate multiplier (e.g. 1.0)</field>
+      <field type="float" name="fc_rx_loss">FC RX packet loss percentage (0.0 - 100.0)</field>
+      <field type="uint32_t" name="fc_tx_err">FC Transmit error count</field>
+      <field type="uint32_t" name="fc_bytes_rx">Total bytes received from Flight Controller</field>
+      <field type="uint32_t" name="fc_bytes_tx">Total bytes transmitted to Flight Controller</field>
+      <field type="uint32_t" name="fc_baudrate">Flight Controller UART baudrate, e.g. 921600</field>
+
+      <!-- Rates for SIYI -->
+      <field type="float" name="siyi_tx_rate">SIYI Transmit rate in Bytes/sec</field>
+      <field type="float" name="siyi_rx_rate">SIYI Receive rate in Bytes/sec</field>
+      <field type="float" name="siyi_tx_rate_max">SIYI Peak transmit rate in Bytes/sec</field>
+      <field type="float" name="siyi_tx_rate_multi">SIYI Transmit rate multiplier (e.g. 1.0)</field>
+      <field type="float" name="siyi_rx_loss">SIYI RX packet loss percentage (0.0 - 100.0)</field>
+      <field type="uint32_t" name="siyi_tx_err">SIYI Transmit error count</field>
+      <field type="uint32_t" name="siyi_bytes_rx">Total bytes received from SIYI link</field>
+      <field type="uint32_t" name="siyi_bytes_tx">Total bytes transmitted to SIYI link</field>
+      <field type="uint32_t" name="siyi_baudrate">SIYI telemetry link baudrate, e.g. 115200</field>
+
+      <!-- Status and Device Info -->
+      <field type="uint8_t" name="fc_status" enum="CC_LINK_STATUS">Flight Controller link status</field>
+      <field type="uint8_t" name="siyi_status" enum="CC_LINK_STATUS">SIYI Air Unit link status</field>
+      <field type="uint8_t" name="transport_type">Transport protocol (1: Serial/UART, 2: UDP, 3: TCP)</field>
+      <field type="char[16]" name="fc_port">FC active serial device node, e.g. /dev/ttyAMA4</field>
+      <field type="char[16]" name="siyi_port">SIYI active serial device node, e.g. /dev/ttyAMA0</field>
+      <field type="char[48]" name="available_ports">Comma-separated available plugged serial ports detected by CC, e.g. ttyAMA0,ttyAMA4</field>
+    </message>
+
+    <!-- Message 2: Camera, Multi-Client RTSP & Video Pipeline (Tab Camera) -->
+    <message id="42011" name="CC_TELEMETRY_CAMERA">
+      <description>Companion Computer camera sensor, multi-platform RTSP endpoints (QGC, Controller, Laptop), resolution, FPS, and default profile flag.</description>
+      <field type="uint16_t" name="video_width">Video stream resolution width in pixels, e.g. 1280 or 1920</field>
+      <field type="uint16_t" name="video_height">Video stream resolution height in pixels, e.g. 720 or 1080</field>
+      <field type="uint16_t" name="depth_width">Depth stream resolution width in pixels, e.g. 640</field>
+      <field type="uint16_t" name="depth_height">Depth stream resolution height in pixels, e.g. 480</field>
+      <field type="uint16_t" name="rotation">Camera sensor rotation in degrees: 0, 90, 180, 270</field>
+      <field type="uint16_t" name="bitrate_kbps">Encoder nominal target bitrate in kbps, e.g. 2500</field>
+      <field type="uint16_t" name="bitrate_max_kbps">Encoder maximum peak bitrate in kbps, e.g. 3000</field>
+      <field type="uint16_t" name="vbv_buffer_kb">Encoder VBV buffer size in kilobits, e.g. 1250</field>
+      <field type="uint16_t" name="rtsp_port">RTSP streaming server network port, e.g. 8554</field>
+      <field type="uint8_t" name="video_fps">Video stream framerate, e.g. 30</field>
+      <field type="uint8_t" name="depth_fps">Depth sensor stream framerate, e.g. 30</field>
+      <field type="uint8_t" name="camera_id">Camera index (0: Primary / RealSense, 1: Secondary / Gimbal or FPV)</field>
+      <field type="uint8_t" name="is_default">Configuration default persistence flag (1: saved as default, 0: pending/modified)</field>
+      <field type="uint8_t" name="profile_mode">0: rgb_only, 1: rgb_depth, 2: rgb_depth_pointcloud</field>
+      <field type="uint8_t" name="enable_emitter">Laser projector emitter flag (0: off, 1: on)</field>
+      <field type="uint8_t" name="camera_status" enum="CC_CAM_STATUS">Active camera operational state</field>
+      <field type="uint8_t" name="error_code" enum="CC_CAM_ERROR">Specific diagnostic error code</field>
+      <field type="uint8_t" name="usb_speed_mode">USB bus speed mode: 1: USB 2.0, 2: USB 3.0 (SuperSpeed), 3: USB 3.2</field>
+      <field type="char[24]" name="camera_name">Human-readable camera model, e.g. Intel RealSense D435i</field>
+      <field type="char[12]" name="camera_type">Driver type: realsense, v4l2, siyi, csi</field>
+      <field type="char[20]" name="connection_port">Hardware bus or port identifier, e.g. USB 3.2 Gen 1</field>
+      <field type="char[16]" name="serial_number">Camera hardware serial number</field>
+      <field type="char[6]" name="codec">Video codec: h264, h265</field>
+      <field type="char[6]" name="encoder_mode">Encoder mode: hw, cpu, auto</field>
+      <field type="char[48]" name="rtsp_url_qgc">RTSP URL endpoint for QGroundControl (AP subnet)</field>
+      <field type="char[48]" name="rtsp_url_controller">RTSP URL endpoint for Handheld Controller / SIYI link</field>
+      <field type="char[40]" name="rtsp_url_laptop">RTSP URL endpoint for Laptop / LAN client</field>
+    </message>
+
+    <!-- Message 3: Network Interfaces, Hotspot & DHCP Status (Tab Networking) -->
+    <message id="42012" name="CC_TELEMETRY_NETWORK">
+      <description>Companion Computer network interfaces, Access Point (hostapd), WiFi station, and Ethernet configuration.</description>
+      <field type="uint32_t" name="uap0_rx_kb">Hotspot uap0 total received traffic in kilobytes</field>
+      <field type="uint32_t" name="uap0_tx_kb">Hotspot uap0 total transmitted traffic in kilobytes</field>
+      <field type="uint32_t" name="wlan0_rx_kb">WiFi client wlan0 total received traffic in kilobytes</field>
+      <field type="uint32_t" name="wlan0_tx_kb">WiFi client wlan0 total transmitted traffic in kilobytes</field>
+      <field type="uint32_t" name="eth0_rx_kb">Ethernet eth0 total received traffic in kilobytes</field>
+      <field type="uint32_t" name="eth0_tx_kb">Ethernet eth0 total transmitted traffic in kilobytes</field>
+      <field type="uint8_t" name="ap_channel">Wi-Fi AP radio channel, e.g. 6</field>
+      <field type="uint8_t" name="ap_ieee80211n">802.11n high-throughput flag (1: enabled)</field>
+      <field type="uint8_t" name="ap_wmm_enabled">WMM QoS flag (1: enabled)</field>
+      <field type="uint8_t" name="ap_wpa">WPA security version (2: WPA2-PSK)</field>
+      <field type="uint8_t" name="ap_client_count">Count of currently connected Wi-Fi clients</field>
+      <field type="uint8_t" name="ap_status" enum="CC_NET_STATUS">Access Point hostapd operational status</field>
+      <field type="uint8_t" name="wlan0_status" enum="CC_NET_STATUS">Wi-Fi station interface operational status</field>
+      <field type="uint8_t" name="eth0_status" enum="CC_NET_STATUS">Ethernet interface carrier / link status</field>
+      <field type="uint8_t" name="eth0_is_static">Ethernet IP configuration (1: Static IP, 0: DHCP Client)</field>
+      <field type="uint8_t" name="wlan0_dhcp">Wi-Fi client DHCP client active flag</field>
+      <field type="uint8_t" name="dnsmasq_status">Local DHCP/DNS server (dnsmasq) active flag</field>
+      <field type="int8_t" name="wlan0_rssi">WiFi station received signal strength in dBm, e.g. -65</field>
+      <field type="char[16]" name="eth0_ip">Ethernet interface IP address</field>
+      <field type="char[16]" name="eth0_netmask">Ethernet subnet mask, e.g. 255.255.255.0</field>
+      <field type="char[16]" name="wlan0_ip">Wi-Fi station interface IP address</field>
+      <field type="char[16]" name="wlan0_netmask">Wi-Fi station subnet mask</field>
+      <field type="char[32]" name="wlan0_ssid">Connected Wi-Fi Access Point SSID</field>
+      <field type="char[16]" name="ap_ip">Access Point interface gateway IP (uap0), e.g. 192.168.10.1</field>
+      <field type="char[16]" name="ap_netmask">Access Point subnet mask</field>
+      <field type="char[32]" name="ap_ssid">Wi-Fi Access Point SSID, e.g. AP_DRONE</field>
+      <field type="char[16]" name="ap_wpa_passphrase">Wi-Fi AP WPA passphrase (redacted if restricted)</field>
+      <field type="char[12]" name="ap_key_mgmt">Key management protocol, e.g. WPA-PSK</field>
+      <field type="char[4]" name="ap_hw_mode">Hardware radio band mode, e.g. g or a</field>
+    </message>
+
+    <!-- Message 4: Vision & AI Object Detector Status (Tab Vision) -->
+    <message id="42013" name="CC_TELEMETRY_VISION">
+      <description>Companion Computer AI perception and YOLO object detector status.</description>
+      <field type="float" name="confidence_thresh">Detection confidence threshold, e.g. 0.35</field>
+      <field type="float" name="inference_fps">Current inference frames per second, e.g. 5.0</field>
+      <field type="uint16_t" name="input_width">Model input width in pixels, e.g. 640</field>
+      <field type="uint16_t" name="input_height">Model input height in pixels, e.g. 360</field>
+      <field type="uint8_t" name="video_fps">Camera input FPS, e.g. 20</field>
+      <field type="uint8_t" name="detections_count">Current count of detected target objects</field>
+      <field type="uint8_t" name="status_flags">Vision pipeline status: bit 0: running, bit 1: depth enabled</field>
+      <field type="char[24]" name="model_name">Active YOLO model filename, e.g. yolo26n.pt</field>
+      <field type="char[12]" name="input_source">Input video source: rtsp, realsense, v4l2</field>
+    </message>
+
+    <!-- Message 5: System Health & Hardware Resource Monitor (Tab Health) -->
+    <message id="42014" name="CC_TELEMETRY_SYSTEM">
+      <description>Companion Computer system health, SoC temperature, CPU/RAM/Disk resources, and uptime.</description>
+      <field type="uint32_t" name="system_uptime_s">System uptime since boot in seconds</field>
+      <field type="uint8_t" name="cpu_usage">CPU utilization percentage (0 - 100)</field>
+      <field type="uint8_t" name="ram_usage">RAM memory utilization percentage (0 - 100)</field>
+      <field type="uint8_t" name="disk_usage">Storage eMMC/SD card utilization percentage (0 - 100)</field>
+      <field type="int8_t" name="cpu_temp">CPU SoC temperature in degrees Celsius</field>
+      <field type="uint8_t" name="system_status" enum="CC_SYS_STATUS">System health alerts bitmask</field>
+    </message>
+  
+    <!-- ================================================================= -->
+    <!-- Companion Computer Linux OS Configuration Subsystem Messages (42100 - 42108)  -->
+    <!-- Independent from ROS 2/MAVROS. Managed by thaco-config-agent.     -->
+    <!-- ================================================================= -->
+
+    <!-- Message: Begin Configuration Transaction -->
+    <message id="42100" name="CC_CONFIG_BEGIN">
+      <description>Initiate a new isolated staging configuration transaction.</description>
+      <field type="uint32_t" name="request_id">Client request ID</field>
+      <field type="uint32_t" name="timeout_s">Safety confirmation timeout in seconds (default 30)</field>
+    </message>
+
+    <!-- Message: Set Configuration Key in Staging -->
+    <message id="42101" name="CC_CONFIG_SET">
+      <description>Stage a configuration key-value update inside active transaction.</description>
+      <field type="uint32_t" name="request_id">Client request ID</field>
+      <field type="uint32_t" name="transaction_id">Active transaction ID</field>
+      <field type="char[64]" name="key">Namespaced configuration key path</field>
+      <field type="char[128]" name="value">New value encoded as string</field>
+    </message>
+
+    <!-- Message: Get Configuration Value -->
+    <message id="42102" name="CC_CONFIG_GET">
+      <description>Query an active or default configuration value.</description>
+      <field type="uint32_t" name="request_id">Client request ID</field>
+      <field type="char[64]" name="key">Namespaced configuration key path</field>
+    </message>
+
+    <!-- Message: Apply Staged Configuration -->
+    <message id="42103" name="CC_CONFIG_APPLY">
+      <description>Trigger atomic persistence, backup, and apply to Linux backends.</description>
+      <field type="uint32_t" name="request_id">Client request ID</field>
+      <field type="uint32_t" name="transaction_id">Transaction ID to apply</field>
+    </message>
+
+    <!-- Message: Confirm Network Connection -->
+    <message id="42104" name="CC_CONFIG_CONFIRM">
+      <description>Confirm connectivity after apply to disarm safety rollback timer.</description>
+      <field type="uint32_t" name="request_id">Client request ID</field>
+      <field type="uint32_t" name="transaction_id">Transaction ID to confirm</field>
+    </message>
+
+    <!-- Message: Rollback or Abort Transaction -->
+    <message id="42105" name="CC_CONFIG_ROLLBACK">
+      <description>Explicitly abort active transaction or revert to previous backup.</description>
+      <field type="uint32_t" name="request_id">Client request ID</field>
+      <field type="uint32_t" name="transaction_id">Transaction ID</field>
+    </message>
+
+    <!-- Message: Structured Acknowledgment Response -->
+    <message id="42106" name="CC_CONFIG_ACK">
+      <description>Structured result response from config subsystem to QGC.</description>
+      <field type="uint32_t" name="request_id">Matching client request ID</field>
+      <field type="uint32_t" name="transaction_id">Active transaction ID</field>
+      <field type="uint8_t" name="result" enum="CC_CONFIG_RESULT">Transaction result status</field>
+      <field type="uint8_t" name="apply_type" enum="CC_CONFIG_APPLY_TYPE">Required system apply action</field>
+      <field type="uint16_t" name="error_code">Subsystem error code (0=No error)</field>
+      <field type="char[50]" name="message">Human-readable descriptive feedback</field>
+    </message>
+
+    <!-- Message: Configuration Key Value Return -->
+    <message id="42107" name="CC_CONFIG_VALUE">
+      <description>Return configuration key query result.</description>
+      <field type="uint32_t" name="request_id">Matching client request ID</field>
+      <field type="char[64]" name="key">Namespaced configuration key path</field>
+      <field type="char[128]" name="value">Current value encoded as string</field>
+    </message>
+
+    <!-- Message: Transaction Progress & Pipeline Status -->
+    <message id="42108" name="CC_CONFIG_STATUS">
+      <description>Detailed status and progress report of active transaction.</description>
+      <field type="uint32_t" name="transaction_id">Active transaction ID</field>
+      <field type="uint8_t" name="state" enum="CC_CONFIG_STATE">Current lifecycle state</field>
+      <field type="uint8_t" name="progress">Progress percentage (0 - 100)</field>
+      <field type="uint16_t" name="error_code">Subsystem error code if state is error</field>
+      <field type="char[50]" name="message">Status description</field>
+    </message>
+
+  </messages>
+</mavlink>

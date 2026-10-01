@@ -17,6 +17,7 @@
   -->
   <include>common.xml</include>
   <include>development.xml</include>
+  <include>thaco.xml</include>
   <!-- icarous.xml range of IDs:
     messages: 42000 - 42999
     commands: ? - ?
