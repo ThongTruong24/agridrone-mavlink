@@ -30,7 +30,7 @@ set(EXAMPLE_HEADER ${CMAKE_CURRENT_BINARY_DIR}/include/mavlink/${MAVLINK_DIALECT
 add_custom_command(OUTPUT ${EXAMPLE_HEADER}
     COMMAND ${Python_EXECUTABLE}
         -m pip install -r pymavlink/requirements.txt --upgrade -t ${CMAKE_CURRENT_BINARY_DIR}/pip-dependencies/
-        COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/pip-dependencies/" ${Python_EXECUTABLE}
+        COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/pip-dependencies/" "PYTHONHASHSEED=0" ${Python_EXECUTABLE}
         -m pymavlink.tools.mavgen
         --lang=C
         --wire-protocol=${MAVLINK_VERSION}
