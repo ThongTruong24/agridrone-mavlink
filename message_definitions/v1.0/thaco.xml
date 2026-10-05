@@ -174,7 +174,7 @@
         <description>Feature is enabled</description>
       </entry>
     </enum>
-  
+
     <!-- Companion Computer Linux OS Configuration Subsystem Enums -->
     <enum name="CC_CONFIG_RESULT">
       <description>Result codes for CC_CONFIG_ACK</description>
@@ -247,39 +247,21 @@
     <!-- COMPANION COMPUTER DEDICATED TELEMETRY MESSAGES                    -->
     <!-- ================================================================= -->
 
-    <!-- Message 1: Serial & Comm Telemetry Links (Tab Telemetry) -->
-        <!-- Message 1: Telemetry & Radio Links (FC & SIYI) -->
-    <message id="42010" name="CC_TELEMETRY_LINKS">
-      <description>Companion Computer serial and communication telemetry link status for FC and SIYI Air Unit.</description>
-      <!-- Rates for FC -->
-      <field type="float" name="fc_tx_rate">FC Transmit rate in Bytes/sec</field>
-      <field type="float" name="fc_rx_rate">FC Receive rate in Bytes/sec</field>
-      <field type="float" name="fc_tx_rate_max">FC Peak transmit rate in Bytes/sec</field>
-      <field type="float" name="fc_tx_rate_multi">FC Transmit rate multiplier (e.g. 1.0)</field>
-      <field type="float" name="fc_rx_loss">FC RX packet loss percentage (0.0 - 100.0)</field>
-      <field type="uint32_t" name="fc_tx_err">FC Transmit error count</field>
-      <field type="uint32_t" name="fc_bytes_rx">Total bytes received from Flight Controller</field>
-      <field type="uint32_t" name="fc_bytes_tx">Total bytes transmitted to Flight Controller</field>
-      <field type="uint32_t" name="fc_baudrate">Flight Controller UART baudrate, e.g. 921600</field>
-
-      <!-- Rates for SIYI -->
-      <field type="float" name="siyi_tx_rate">SIYI Transmit rate in Bytes/sec</field>
-      <field type="float" name="siyi_rx_rate">SIYI Receive rate in Bytes/sec</field>
-      <field type="float" name="siyi_tx_rate_max">SIYI Peak transmit rate in Bytes/sec</field>
-      <field type="float" name="siyi_tx_rate_multi">SIYI Transmit rate multiplier (e.g. 1.0)</field>
-      <field type="float" name="siyi_rx_loss">SIYI RX packet loss percentage (0.0 - 100.0)</field>
-      <field type="uint32_t" name="siyi_tx_err">SIYI Transmit error count</field>
-      <field type="uint32_t" name="siyi_bytes_rx">Total bytes received from SIYI link</field>
-      <field type="uint32_t" name="siyi_bytes_tx">Total bytes transmitted to SIYI link</field>
-      <field type="uint32_t" name="siyi_baudrate">SIYI telemetry link baudrate, e.g. 115200</field>
-
-      <!-- Status and Device Info -->
-      <field type="uint8_t" name="fc_status" enum="CC_LINK_STATUS">Flight Controller link status</field>
-      <field type="uint8_t" name="siyi_status" enum="CC_LINK_STATUS">SIYI Air Unit link status</field>
-      <field type="uint8_t" name="transport_type">Transport protocol (1: Serial/UART, 2: UDP, 3: TCP)</field>
-      <field type="char[16]" name="fc_port">FC active serial device node, e.g. /dev/ttyAMA4</field>
-      <field type="char[16]" name="siyi_port">SIYI active serial device node, e.g. /dev/ttyAMA0</field>
-      <field type="char[48]" name="available_ports">Comma-separated available plugged serial ports detected by CC, e.g. ttyAMA0,ttyAMA4</field>
+    <!-- Message 1: One companion-computer serial link (named, per-link) -->
+    <message id="42010" name="CC_SERIAL_LINK">
+      <description>One companion-computer serial link, sent at 1 Hz for each configured link. The link identity is the user-defined name (data), never a hardcoded role.</description>
+      <field type="float" name="rx_rate" units="B/s">MAVLink bytes/s received on this link (router endpoint stats)</field>
+      <field type="float" name="tx_rate" units="B/s">MAVLink bytes/s transmitted on this link</field>
+      <field type="float" name="rx_loss" units="%">Sequence loss percentage</field>
+      <field type="uint32_t" name="rx_bytes" units="bytes">Total bytes received</field>
+      <field type="uint32_t" name="tx_bytes" units="bytes">Total bytes transmitted</field>
+      <field type="uint32_t" name="rx_errors">Kernel UART framing+overrun+parity+break errors since the previous message (wrong baud or noise)</field>
+      <field type="uint32_t" name="baudrate" units="bps">Configured baud rate</field>
+      <field type="uint8_t" name="link_index">Index of this link in the active link list (0..link_count-1)</field>
+      <field type="uint8_t" name="link_count">Number of configured links</field>
+      <field type="uint8_t" name="status" enum="CC_LINK_STATUS">Link status</field>
+      <field type="char[16]" name="name">User-defined link name, e.g. FC</field>
+      <field type="char[16]" name="port">Serial device node, e.g. /dev/ttyAMA4</field>
     </message>
 
     <!-- Message 2: Camera, Multi-Client RTSP & Video Pipeline (Tab Camera) -->
@@ -380,7 +362,7 @@
       <field type="uint8_t" name="tracking" enum="CC_AI_VISION_CONTROL_STATE">AI target tracking control: 0 disabled, 1 enabled</field>
       <field type="uint8_t" name="following" enum="CC_AI_VISION_CONTROL_STATE">Target following control: 0 disabled, 1 enabled</field>
     </message>
-  
+
     <!-- ================================================================= -->
     <!-- Companion Computer Linux OS Configuration Subsystem Messages (42100 - 42108)  -->
     <!-- Independent from ROS 2/MAVROS. Managed by thaco-config-agent.     -->
