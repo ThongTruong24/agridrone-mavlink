@@ -163,6 +163,17 @@
         <description>CPU load average sustained &gt; 95%</description>
       </entry>
     </enum>
+
+    <!-- AI Vision Feature Control State -->
+    <enum name="CC_AI_VISION_CONTROL_STATE">
+      <description>Control states for Companion Computer AI vision features</description>
+      <entry value="0" name="CC_AI_VISION_CONTROL_STATE_DISABLED">
+        <description>Feature is disabled</description>
+      </entry>
+      <entry value="1" name="CC_AI_VISION_CONTROL_STATE_ENABLED">
+        <description>Feature is enabled</description>
+      </entry>
+    </enum>
   
     <!-- Companion Computer Linux OS Configuration Subsystem Enums -->
     <enum name="CC_CONFIG_RESULT">
@@ -360,6 +371,14 @@
       <field type="uint8_t" name="disk_usage">Storage eMMC/SD card utilization percentage (0 - 100)</field>
       <field type="int8_t" name="cpu_temp">CPU SoC temperature in degrees Celsius</field>
       <field type="uint8_t" name="system_status" enum="CC_SYS_STATUS">System health alerts bitmask</field>
+    </message>
+
+    <!-- Message 6: AI Vision Feature Control (Tab Vision) -->
+    <message id="42015" name="CC_AI_VISION_CONTROL">
+      <description>Controls Companion Computer AI vision features from the ground control station.</description>
+      <field type="uint8_t" name="bounding_box" enum="CC_AI_VISION_CONTROL_STATE">Bounding box display control: 0 disabled, 1 enabled</field>
+      <field type="uint8_t" name="tracking" enum="CC_AI_VISION_CONTROL_STATE">AI target tracking control: 0 disabled, 1 enabled</field>
+      <field type="uint8_t" name="following" enum="CC_AI_VISION_CONTROL_STATE">Target following control: 0 disabled, 1 enabled</field>
     </message>
   
     <!-- ================================================================= -->
