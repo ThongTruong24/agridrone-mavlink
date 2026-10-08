@@ -97,6 +97,14 @@
     </enum>
 
     <!-- Camera Runtime Status -->
+    <enum name="CC_PUBLISH_STATUS">
+      <description>RTSP publisher lifecycle, independent of capture and inference.</description>
+      <entry value="0" name="CC_PUBLISH_STATUS_STOPPED"><description>Encoder and publisher stopped</description></entry>
+      <entry value="1" name="CC_PUBLISH_STATUS_CONNECTING"><description>Starting encoder and RTSP session</description></entry>
+      <entry value="2" name="CC_PUBLISH_STATUS_CONNECTED"><description>Publishing video to the configured RTSP destination</description></entry>
+      <entry value="3" name="CC_PUBLISH_STATUS_ERROR"><description>Publishing failed</description></entry>
+    </enum>
+
     <enum name="CC_CAM_STATUS">
       <description>Camera lifecycle and streaming states</description>
       <entry value="0" name="CC_CAM_STATUS_DISCONNECTED">
@@ -161,6 +169,9 @@
       </entry>
       <entry value="8" name="CC_SYS_STATUS_HIGH_LOAD">
         <description>CPU load average sustained &gt; 95%</description>
+      </entry>
+      <entry value="16" name="CC_SYS_STATUS_CONFIG_DEGRADED">
+        <description>Configuration degraded or reconciliation required</description>
       </entry>
     </enum>
 
@@ -294,6 +305,11 @@
       <field type="char[48]" name="rtsp_url_qgc">RTSP URL endpoint for QGroundControl (AP subnet)</field>
       <field type="char[48]" name="rtsp_url_controller">RTSP URL endpoint for Handheld Controller / SIYI link</field>
       <field type="char[40]" name="rtsp_url_laptop">RTSP URL endpoint for Laptop / LAN client</field>
+      <extensions/>
+      <field type="uint8_t" name="config_version">Publisher control extension version (1 supported)</field>
+      <field type="uint8_t" name="fpv_enabled">FPV branch enabled; independent of AI input</field>
+      <field type="uint8_t" name="supported_codecs">Codec capabilities: bit 0 H264, bit 1 H265</field>
+      <field type="uint8_t" name="publish_status" enum="CC_PUBLISH_STATUS">RTSP publisher lifecycle</field>
     </message>
 
     <!-- Message 3: Network Interfaces, Hotspot & DHCP Status (Tab Networking) -->
@@ -328,6 +344,10 @@
       <field type="char[16]" name="ap_wpa_passphrase">Wi-Fi AP WPA passphrase (redacted if restricted)</field>
       <field type="char[12]" name="ap_key_mgmt">Key management protocol, e.g. WPA-PSK</field>
       <field type="char[4]" name="ap_hw_mode">Hardware radio band mode, e.g. g or a</field>
+      <extensions/>
+      <field type="uint8_t" name="config_version">Hotspot control extension version (1 supported)</field>
+      <field type="uint8_t" name="ap_dhcp_enabled">Hotspot DHCP server enabled</field>
+      <field type="uint8_t" name="ap_prefix_length">Hotspot IPv4 gateway prefix length</field>
     </message>
 
     <!-- Message 4: Vision & AI Object Detector Status (Tab Vision) -->
@@ -342,6 +362,13 @@
       <field type="uint8_t" name="status_flags">Vision pipeline status: bit 0: running, bit 1: depth enabled</field>
       <field type="char[24]" name="model_name">Active YOLO model filename, e.g. yolo26n.pt</field>
       <field type="char[12]" name="input_source">Input video source: rtsp, realsense, v4l2</field>
+      <extensions/>
+      <field type="uint8_t" name="config_version">Publisher control extension version (1 supported)</field>
+      <field type="uint8_t" name="enabled">Vision inference enabled</field>
+      <field type="uint16_t" name="bitrate_kbps">Configured output encoder bitrate in kbps</field>
+      <field type="char[6]" name="codec">Output codec: h264 or h265</field>
+      <field type="uint8_t" name="supported_codecs">Codec capabilities: bit 0 H264, bit 1 H265</field>
+      <field type="uint8_t" name="publish_status" enum="CC_PUBLISH_STATUS">RTSP publisher lifecycle</field>
     </message>
 
     <!-- Message 5: System Health & Hardware Resource Monitor (Tab Health) -->
@@ -353,6 +380,8 @@
       <field type="uint8_t" name="disk_usage">Storage eMMC/SD card utilization percentage (0 - 100)</field>
       <field type="int8_t" name="cpu_temp">CPU SoC temperature in degrees Celsius</field>
       <field type="uint8_t" name="system_status" enum="CC_SYS_STATUS">System health alerts bitmask</field>
+      <extensions/>
+      <field type="char[32]" name="companion_name">Companion hostname</field>
     </message>
 
     <!-- Message 6: AI Vision Feature Control (Tab Vision) -->
