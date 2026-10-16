@@ -173,6 +173,9 @@
       <entry value="16" name="CC_SYS_STATUS_CONFIG_DEGRADED">
         <description>Configuration degraded or reconciliation required</description>
       </entry>
+      <entry value="32" name="CC_SYS_STATUS_CONFIG_LOCKED">
+        <description>Links/hotspot configuration is locked: the last known FC state is ARMED (also after a CC reboot in flight)</description>
+      </entry>
     </enum>
 
     <!-- AI Vision Feature Control State -->
