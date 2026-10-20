@@ -189,6 +189,13 @@
       </entry>
     </enum>
 
+    <enum name="CC_BANDWIDTH_VALID" bitmask="true">
+      <description>Owners whose bandwidth in CC_BANDWIDTH is fresh and valid</description>
+      <entry value="1" name="CC_BANDWIDTH_VALID_ROUTER"><description>edge-router UDP endpoint rates</description></entry>
+      <entry value="2" name="CC_BANDWIDTH_VALID_CAMERA"><description>edge-camera encoder and MediaMTX rates</description></entry>
+      <entry value="4" name="CC_BANDWIDTH_VALID_NETWORK"><description>edge-network interface rates</description></entry>
+    </enum>
+
     <!-- Companion Computer Linux OS Configuration Subsystem Enums -->
     <enum name="CC_CONFIG_RESULT">
       <description>Result codes for CC_CONFIG_ACK</description>
@@ -393,6 +400,20 @@
       <field type="uint8_t" name="bounding_box" enum="CC_AI_VISION_CONTROL_STATE">Bounding box display control: 0 disabled, 1 enabled</field>
       <field type="uint8_t" name="tracking" enum="CC_AI_VISION_CONTROL_STATE">AI target tracking control: 0 disabled, 1 enabled</field>
       <field type="uint8_t" name="following" enum="CC_AI_VISION_CONTROL_STATE">Target following control: 0 disabled, 1 enabled</field>
+    </message>
+
+    <!-- Message 7: Per-hop stream bandwidth (spec docs/superpowers/specs/2026-10-20-stream-bandwidth-design.md) -->
+    <message id="42016" name="CC_BANDWIDTH">
+      <description>Measured per-hop bandwidth of the telemetry and camera streams, sent at 1 Hz by the companion agent even when no owner reports (valid = 0). Fields of an owner whose valid bit is clear are 0 and must be shown as no data.</description>
+      <field type="float[3]" name="udp_tx_rate" units="B/s">Router tx to QGC_UDP_Server_14550, QGC_UDP_Server_14551, QGC_Direct</field>
+      <field type="float[3]" name="udp_rx_rate" units="B/s">Router rx from the same three endpoints</field>
+      <field type="float" name="video_in_kbps">Encoder bytes into MediaMTX path camera, kbit/s</field>
+      <field type="float" name="video_submit_fps" units="Hz">Frames submitted to the encoder per second (measured)</field>
+      <field type="float[4]" name="video_out_kbps">MediaMTX bytes sent to readers on uap0, eth0, wlan0, other, kbit/s</field>
+      <field type="float[3]" name="if_rx_kbps">Interface rx uap0, eth0, wlan0, kbit/s</field>
+      <field type="float[3]" name="if_tx_kbps">Interface tx uap0, eth0, wlan0, kbit/s</field>
+      <field type="uint8_t" name="video_readers">Readers of MediaMTX path camera, all protocols</field>
+      <field type="uint8_t" name="valid" enum="CC_BANDWIDTH_VALID" display="bitmask">Owners with fresh, valid data</field>
     </message>
 
     <!-- ================================================================= -->
