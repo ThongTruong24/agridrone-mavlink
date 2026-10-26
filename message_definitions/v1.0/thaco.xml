@@ -400,6 +400,9 @@
       <field type="uint8_t" name="bounding_box" enum="CC_AI_VISION_CONTROL_STATE">Bounding box display control: 0 disabled, 1 enabled</field>
       <field type="uint8_t" name="tracking" enum="CC_AI_VISION_CONTROL_STATE">AI target tracking control: 0 disabled, 1 enabled</field>
       <field type="uint8_t" name="following" enum="CC_AI_VISION_CONTROL_STATE">Target following control: 0 disabled, 1 enabled</field>
+      <extensions/>
+      <field type="uint8_t" name="distance" units="dm">Upper following distance in 0.1 m steps (30 = 3 m). Zero leaves the current configured distance unchanged.</field>
+      <field type="uint8_t" name="threshold" units="dm">Hover band width in 0.1 m steps (5 = 0.5 m). Zero leaves the current configured width unchanged. Hover within [distance - threshold, distance]. The resulting width must be less than the distance; receivers must validate both against their operating limits before applying.</field>
     </message>
 
     <!-- Message 7: Per-hop stream bandwidth (spec docs/superpowers/specs/2026-10-20-stream-bandwidth-design.md) -->

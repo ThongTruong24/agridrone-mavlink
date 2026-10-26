@@ -70,6 +70,42 @@ Instructions for using the C libraries are then covered in [Using C MAVLink Libr
 > The sub-topics of [Using MAVLink Libraries](https://mavlink.io/en/getting_started/use_libraries.html) explain how to use the generated libraries.
 
 
+## THACO vision following control
+
+`CC_AI_VISION_CONTROL` (42015) retains the `bounding_box`, `tracking` and
+`following` flags and adds two MAVLink 2 extension bytes:
+
+| Field | Wire unit | Meaning |
+| --- | --- | --- |
+| `distance` | 0.1 m (`dm`) | Upper following distance; `30` means 3 m. |
+| `threshold` | 0.1 m (`dm`) | Hover band width; `5` means 0.5 m. |
+
+The hover band is inclusive: `[distance - threshold, distance]`. For example,
+`distance=30, threshold=5` requests hover between 2.5 m and 3 m, approach above
+3 m and retreat below 2.5 m. Following requires both `tracking=1` and
+`following=1`, together with the flight controller's Offboard admission checks.
+
+A zero byte leaves that setting unchanged, including when an older sender omits
+both extensions. The receiver must validate the resulting pair against its flight
+operating limits before applying either setting: distance and width must be
+positive, and width must be less than distance. Invalid settings must leave both
+current settings unchanged. These bytes request runtime settings; they do not
+imply persistence or acknowledge that the receiver applied them.
+
+The original three bytes remain at offsets 0–2; distance and threshold occupy
+offsets 3 and 4. Payload minimum length stays 3, maximum length becomes 5 and
+CRC_EXTRA stays 211. Older receivers ignore the new fields. Regenerate consumers
+from this XML; generated C pack functions now take both additional arguments
+(`0, 0` preserves the existing settings). Applications must explicitly handle
+these fields to support changing the hover band from the GCS.
+
+In the THACO superproject, generate Companion headers through the parent helper:
+
+```bash
+python3 sync_mavlink.py --lang C++11 \
+  --output Companion_Computer/build/cc_mavlink/generated/mavlink
+```
+
 ## Key Links
 
 * [Documentation/Website](https://mavlink.io/en/) (mavlink.io/en/)
