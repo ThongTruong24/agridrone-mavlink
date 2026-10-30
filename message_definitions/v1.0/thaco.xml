@@ -403,6 +403,9 @@
       <extensions/>
       <field type="uint8_t" name="distance" units="dm">Upper following distance in 0.1 m steps (30 = 3 m). Zero leaves the current configured distance unchanged.</field>
       <field type="uint8_t" name="threshold" units="dm">Hover band width in 0.1 m steps (5 = 0.5 m). Zero leaves the current configured width unchanged. Hover within [distance - threshold, distance]. The resulting width must be less than the distance; receivers must validate both against their operating limits before applying.</field>
+      <field type="float" name="vel_gain">Target velocity feedforward gain, dimensionless, finite 0 to 2 inclusive. Default 0. Apply together with acc_gain only when gains_valid is 1.</field>
+      <field type="float" name="acc_gain">Target acceleration feedforward gain, dimensionless, finite 0 to 2 inclusive. Default 0. Apply together with vel_gain only when gains_valid is 1.</field>
+      <field type="uint8_t" name="gains_valid">0: retain both configured gains (legacy sender). 1: validate and apply both gains atomically, including explicit zeros. Other values must not change gains. Invalid gains must not prevent valid feature flags, especially Following OFF, from taking effect.</field>
     </message>
 
     <!-- Message 7: Per-hop stream bandwidth (spec docs/superpowers/specs/2026-10-20-stream-bandwidth-design.md) -->

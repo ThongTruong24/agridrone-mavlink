@@ -73,12 +73,21 @@ Instructions for using the C libraries are then covered in [Using C MAVLink Libr
 ## THACO vision following control
 
 `CC_AI_VISION_CONTROL` (42015) retains the `bounding_box`, `tracking` and
-`following` flags and adds two MAVLink 2 extension bytes:
+`following` flags and adds backward-compatible MAVLink2 extensions:
 
 | Field | Wire unit | Meaning |
 | --- | --- | --- |
 | `distance` | 0.1 m (`dm`) | Upper following distance; `30` means 3 m. |
 | `threshold` | 0.1 m (`dm`) | Hover band width; `5` means 0.5 m. |
+
+Two float extensions, `vel_gain` and `acc_gain`, multiply target velocity and acceleration
+feedforward respectively (dimensionless, finite0..2, defaults0). Position and yaw remain
+direct setpoints. A final `uint8_t gains_valid` distinguishes explicit zero gains (`1`)
+from legacy packets (`0`, keep both current gains). Validate/apply gains as one pair;
+invalid gains/presence must not prevent a valid Following OFF. These are feedforward
+multipliers, not FC motion limits. Gains do not enable Following or bypass admission.
+Offsets: vel_gain5, acc_gain9, gains_valid13; payload min3/max14, CRC_EXTRA211 unchanged.
+Old receivers ignore new extensions. New receivers preserve gains on old packets.
 
 The hover band is inclusive: `[distance - threshold, distance]`. For example,
 `distance=30, threshold=5` requests hover between 2.5 m and 3 m, approach above
