@@ -77,8 +77,8 @@ Instructions for using the C libraries are then covered in [Using C MAVLink Libr
 
 | Field | Wire unit | Meaning |
 | --- | --- | --- |
-| `distance` | 0.1 m (`dm`) | Upper following distance; `30` means 3 m. |
-| `threshold` | 0.1 m (`dm`) | Hover band width; `5` means 0.5 m. |
+| `distance` | 0.1 m (`dm`) | Desired following distance (centre); `30` means 3 m. |
+| `threshold` | 0.1 m (`dm`) | Tolerance radius (plus/minus); `5` means 0.5 m. |
 
 Two float extensions, `vel_gain` and `acc_gain`, multiply target velocity and acceleration
 feedforward respectively (dimensionless, finite0..2, defaults0). Position and yaw remain
@@ -89,9 +89,9 @@ multipliers, not FC motion limits. Gains do not enable Following or bypass admis
 Offsets: vel_gain5, acc_gain9, gains_valid13; payload min3/max14, CRC_EXTRA211 unchanged.
 Old receivers ignore new extensions. New receivers preserve gains on old packets.
 
-The hover band is inclusive: `[distance - threshold, distance]`. For example,
-`distance=30, threshold=5` requests hover between 2.5 m and 3 m, approach above
-3 m and retreat below 2.5 m. Following requires both `tracking=1` and
+The acceptable band is inclusive: `[distance - threshold, distance + threshold]`. For example,
+`distance=40, threshold=3` requests following around4m with tolerance0.3m,
+meaning3.7..4.3m. Position goal remains4m. Following requires both `tracking=1` and
 `following=1`, together with the flight controller's Offboard admission checks.
 
 A zero byte leaves that setting unchanged, including when an older sender omits
@@ -102,10 +102,10 @@ current settings unchanged. These bytes request runtime settings; they do not
 imply persistence or acknowledge that the receiver applied them.
 
 The original three bytes remain at offsets 0–2; distance and threshold occupy
-offsets 3 and 4. Payload minimum length stays 3, maximum length becomes 5 and
+offsets 3 and 4. Payload minimum length stays 3, maximum length becomes14 and
 CRC_EXTRA stays 211. Older receivers ignore the new fields. Regenerate consumers
-from this XML; generated C pack functions now take both additional arguments
-(`0, 0` preserves the existing settings). Applications must explicitly handle
+from this XML; generated C pack functions take distance, threshold, vel_gain, acc_gain, gains_valid
+(`0, 0, 0, 0, 0` preserves configured values). Applications must explicitly handle
 these fields to support changing the hover band from the GCS.
 
 In the THACO superproject, generate Companion headers through the parent helper:
